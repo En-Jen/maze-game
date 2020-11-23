@@ -1,8 +1,10 @@
 const { Engine, Render, Runner, World, Bodies, } = Matter;
 
-const cells = 3;
+const cells = 15;
 const width = 600;
 const height = 600;
+
+const unitLength = width / cells;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -20,10 +22,10 @@ Runner.run(Runner.create(), engine);
 
 // Walls
 const walls = [
-    Bodies.rectangle(width / 2, 0, width, 40, { isStatic: true }),
-    Bodies.rectangle(width / 2, height, width, 40, { isStatic: true }),
-    Bodies.rectangle(0, height / 2, 40, height, { isStatic: true }),
-    Bodies.rectangle(width, height / 2, 40, height, { isStatic: true })
+    Bodies.rectangle(width / 2, 0, width, 2, { isStatic: true }),
+    Bodies.rectangle(width / 2, height, width, 2, { isStatic: true }),
+    Bodies.rectangle(0, height / 2, 2, height, { isStatic: true }),
+    Bodies.rectangle(width, height / 2, 2, height, { isStatic: true })
     
 ];
 World.add(world, walls);
@@ -84,14 +86,86 @@ const stepThroughCell = (row, column) => {
         }
 
         // Remove a wall from either the horizontals or verticals
-        
+        if (direction === 'left') {
+            verticals[row][column - 1] = true;
+        } else if (direction === 'right') {
+            verticals[row][column] = true;
+        } else if (direction === 'up') {
+            horizontals[row - 1][column] = true;
+        } else if (direction === 'down') {
+            horizontals[row][column] = true;
+        }
+
+        stepThroughCell(nextRow, nextColumn);
     }
 
     // Visit that next cell
 };
 
 stepThroughCell(startRow, startColumn);
-console.log(grid);
+
+// Render horizontal maze walls
+horizontals.forEach((row, rowIndex) => {
+    row.forEach((open, columnIndex) => {
+        if (open) {
+            return;
+        }
+
+        const wall = Bodies.rectangle(
+            columnIndex * unitLength + unitLength / 2,
+            rowIndex * unitLength + unitLength,
+            unitLength,
+            2,
+            {
+                isStatic: true
+            }
+        );
+        World.add(world, wall);
+    });
+});
+
+// Render vertical maze walls
+verticals.forEach((row, rowIndex) => {
+    row.forEach((open, columnIndex) => {
+        if (open) {
+            return;
+        }
+
+        const wall = Bodies.rectangle(
+            columnIndex * unitLength + unitLength,
+            rowIndex * unitLength + unitLength / 2,
+            2,
+            unitLength,
+            {
+                isStatic: true
+            }
+        );
+        World.add(world, wall);
+    });
+});
+
+// Goal
+const goal = Bodies.rectangle(
+    width - unitLength / 2,
+    height - unitLength / 2,
+    unitLength * .7,
+    unitLength * .7,
+    {
+        isStatic: true
+    }
+);
+World.add(world, goal);
+
+// Ball
+const ball = Bodies.circle(
+    unitLength / 2,
+    unitLength / 2,
+    unitLength * .3,
+    {
+        isStatic: true
+    }
+);
+World.add(world, ball);
 
 
  
